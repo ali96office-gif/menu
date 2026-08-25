@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم المنيو</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17130F;
+    --panel:#241B15;
+    --panel-2:#2F241C;
+    --accent:#E8A93D;
+    --accent-2:#C6624B;
+    --text:#F5EDE2;
+    --text-muted:#B7A997;
+    --line: rgba(245,237,226,0.12);
+    --danger:#C6624B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:'Tajawal',sans-serif; min-height:100vh;}
+  h1,h2,h3{font-family:'Cairo',sans-serif;}
+  .center-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .login-box{
+    background:var(--panel); padding:32px 26px; border-radius:18px;
+    width:100%; max-width:340px; border:1px solid var(--line);
+  }
+  .login-box h1{font-size:20px; margin-bottom:18px; text-align:center;}
+  input, select, textarea{
+    width:100%; padding:11px 13px; margin-bottom:12px;
+    border-radius:10px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--text); font-family:'Tajawal',sans-serif; font-size:14px;
+  }
+  button{
+    cursor:pointer; border:none; border-radius:10px;
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:14px;
+    padding:10px 16px;
+  }
+  .btn-main{background:var(--accent); color:#17130F; width:100%;}
+  .btn-sm{background:var(--panel-2); color:var(--text); border:1px solid var(--line);}
+  .btn-danger{background:transparent; color:var(--danger); border:1px solid var(--danger);}
+  .error{color:var(--accent-2); font-size:13px; margin-bottom:10px; text-align:center;}
+
+  .app{display:none;}
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--bg); z-index:5;
+  }
+  .topbar h1{font-size:18px;}
+  .tabs-nav{display:flex; gap:8px; padding:14px 20px 0; flex-wrap:wrap;}
+  .tabs-nav button{background:var(--panel); color:var(--text-muted); border:1px solid var(--line);}
+  .tabs-nav button.active{background:var(--accent); color:#17130F; border-color:var(--accent);}
+  .section{padding:20px; max-width:760px; margin:0 auto; display:none;}
+  .section.active{display:block;}
+  .card-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:16px; margin-bottom:14px;
+  }
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  .row > *{flex:1; min-width:120px;}
+  label{font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;}
+  .item-thumb{width:56px; height:56px; border-radius:8px; object-fit:cover; background:var(--panel-2);}
+  .list-row{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 0; border-bottom:1px solid var(--line);
+  }
+  .list-row:last-child{border-bottom:none;}
+  .list-row .info{flex:1;}
+  .list-row .info strong{display:block; font-family:'Cairo',sans-serif; font-size:14px;}
+  .list-row .info span{font-size:12px; color:var(--text-muted);}
+  .list-actions{display:flex; gap:6px;}
+  .list-actions button{padding:6px 10px; font-size:12px;}
+  .flavor-tags, .size-rows{display:flex; flex-direction:column; gap:8px; margin-bottom:10px;}
+  .qr-box{text-align:center; padding:10px;}
+  .qr-box img{width:220px; height:220px; border-radius:12px; background:#fff; padding:10px;}
+  .link-box{
+    background:var(--panel-2); padding:10px 12px; border-radius:10px; font-size:13px;
+    word-break:break-all; margin:10px 0; border:1px solid var(--line);
+  }
+  .hint{font-size:12px; color:var(--text-muted); margin-top:-6px; margin-bottom:12px;}
+  .swatch{width:36px; height:36px; border-radius:8px; border:1px solid var(--line); padding:0;}
+</style>
+</head>
+<body>
+
+<div class="center-screen" id="loginScreen">
+  <div class="login-box">
+    <h1>تسجيل الدخول للوحة التحكم</h1>
+    <div class="error" id="loginError"></div>
+    <input type="email" id="loginEmail" placeholder="الإيميل">
+    <input type="password" id="loginPass" placeholder="كلمة السر">
+    <button class="btn-main" onclick="doLogin()">دخول</button>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <h1 id="topbarShopName">لوحة التحكم</h1>
+    <button class="btn-sm" onclick="doLogout()">خروج</button>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="active" data-tab="items" onclick="switchTab('items')">الأصناف</button>
+    <button data-tab="categories" onclick="switchTab('categories')">التصنيفات</button>
+    <button data-tab="settings" onclick="switchTab('settings')">الشكل العام</button>
+    <button data-tab="qr" onclick="switchTab('qr')">رابط وباركود المنيو</button>
+  </div>
+
+  <!-- ITEMS -->
+  <div class="section active" id="tab-items">
+    <div class="card-box">
+      <h3 id="formTitle" style="margin-bottom:12px;">إضافة صنف جديد</h3>
+      <input type="hidden" id="itemId">
+      <label>اسم الصنف</label>
+      <input id="itemName" placeholder="مثلاً: تشيز برجر">
+      <label>التصنيف</label>
+      <select id="itemCategory"></select>
+      <label>رابط صورة الصنف (اختياري)</label>
+      <input id="itemImageUrl" placeholder="الصق رابط الصورة هنا">
+      <div class="hint">صوّر الصنف بجوالك، ارفعه بموقع مثل postimages.org أو imgbb.com، وانسخ الرابط المباشر هنا</div>
+
+      <label>النكهات (افصل بينها بفاصلة) — اختياري</label>
+      <input id="itemFlavors" placeholder="مثلاً: حار، عادي، بارد">
+
+      <label>الأحجام والأسعار</label>
+      <div class="size-rows" id="sizeRows"></div>
+      <button class="btn-sm" onclick="addSizeRow('','')" type="button">+ إضافة حجم</button>
+
+      <div style="margin-top:14px;">
+        <label><input type="checkbox" id="offerActive" style="width:auto; margin-left:6px;"> فعّل عرض/خصم على الحجم الأول</label>
+        <input id="offerPrice" placeholder="السعر بعد الخصم" style="margin-top:8px;">
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button class="btn-main" onclick="saveItem()">حفظ الصنف</button>
+        <button class="btn-sm" onclick="resetItemForm()">مسح النموذج</button>
+      </div>
+    </div>
+
+    <div class="card-box">
+      <h3 style="margin-bottom:8px;">كل الأصناف</h3>
+      <div id="itemsList"></div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="section" id="tab-categories">
+    <div class="card-box">
+      <h3 style="margin-bottom:12px;">إضافة تصنيف</h3>
+      <input id="catName" placeholder="اسم التصنيف">
+      <button class="btn-main" onclick="addCategory()">إضافة</button>
+    </div>
+    <div class="card-box">
+      <h3 style="margin-bottom:8px;">التصنيفات الحالية</h3>
+      <div id="categoriesList"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="section" id="tab-settings">
+    <div class="card-box">
+      <h3 style="margin-bottom:12px;">الشكل العام للمنيو</h3>
+      <label>اسم المحل</label>
+      <input id="setShopName" placeholder="اسم المحل">
+      <label>وصف قصير (اختياري)</label>
+      <input id="setTagline" placeholder="مثلاً: أفضل مذاق بالمدينة">
+      <label>رابط شعار المحل (اختياري)</label>
+      <input id="setLogoUrl" placeholder="رابط صورة اللوگو">
+      <label>اللون الرئيسي</label>
+      <input type="color" id="setPrimaryColor" class="swatch" value="#E8A93D">
+      <label>اللون الثانوي (للعروض)</label>
+      <input type="color" id="setSecondaryColor" class="swatch" value="#C6624B">
+      <button class="btn-main" onclick="saveSettings()" style="margin-top:10px;">حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <!-- QR -->
+  <div class="section" id="tab-qr">
+    <div class="card-box qr-box">
+      <h3 style="margin-bottom:10px;">رابط المنيو</h3>
+      <div class="link-box" id="menuLink"></div>
+      <img id="qrImg" src="" alt="QR Code">
+      <div style="margin-top:12px;">
+        <a id="qrDownload" href="#" download="menu-qr.png"><button class="btn-sm">تحميل الباركود</button></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+let categories = {};
+let items = {};
+let sizeRowCount = 0;
+
+// ---------- AUTH ----------
+auth.onAuthStateChanged(user=>{
+  if(user){
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    initApp();
+  } else {
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("app").style.display = "none";
+  }
+});
+
+function doLogin(){
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value;
+  document.getElementById("loginError").textContent = "";
+  auth.signInWithEmailAndPassword(email, pass)
+    .catch(err=>{ document.getElementById("loginError").textContent = "الإيميل أو كلمة السر غلط"; });
+}
+function doLogout(){ auth.signOut(); }
+
+// ---------- TABS ----------
+function switchTab(tab){
+  document.querySelectorAll(".tabs-nav button").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  document.querySelectorAll(".section").forEach(s=>s.classList.toggle("active", s.id === "tab-"+tab));
+  if(tab === "qr") renderQr();
+}
+
+// ---------- INIT ----------
+function initApp(){
+  db.ref("categories").on("value", snap=>{
+    categories = snap.val() || {};
+    renderCategorySelect();
+    renderCategoriesList();
+    renderItemsList();
+  });
+  db.ref("items").on("value", snap=>{
+    items = snap.val() || {};
+    renderItemsList();
+  });
+  db.ref("settings").on("value", snap=>{
+    const s = snap.val() || {};
+    document.getElementById("topbarShopName").textContent = s.shopName || "لوحة التحكم";
+    document.getElementById("setShopName").value = s.shopName || "";
+    document.getElementById("setTagline").value = s.tagline || "";
+    document.getElementById("setLogoUrl").value = s.logoUrl || "";
+    if(s.primaryColor) document.getElementById("setPrimaryColor").value = s.primaryColor;
+    if(s.secondaryColor) document.getElementById("setSecondaryColor").value = s.secondaryColor;
+  });
+  resetItemForm();
+}
+
+// ---------- CATEGORIES ----------
+function addCategory(){
+  const name = document.getElementById("catName").value.trim();
+  if(!name) return;
+  const order = Object.keys(categories).length;
+  db.ref("categories").push({name, order});
+  document.getElementById("catName").value = "";
+}
+function deleteCategory(id){
+  if(!confirm("حذف هذا التصنيف؟ (الأصناف المرتبطة فيه ما تنحذف)")) return;
+  db.ref("categories/"+id).remove();
+}
+function renderCategorySelect(){
+  const sel = document.getElementById("itemCategory");
+  const current = sel.value;
+  sel.innerHTML = Object.entries(categories).map(([id,c])=>`<option value="${id}">${c.name}</option>`).join("");
+  if(current) sel.value = current;
+}
+function renderCategoriesList(){
+  const el = document.getElementById("categoriesList");
+  const entries = Object.entries(categories);
+  if(!entries.length){ el.innerHTML = `<div class="hint">ما كو تصنيفات بعد</div>`; return; }
+  el.innerHTML = entries.map(([id,c])=>`
+    <div class="list-row">
+      <div class="info"><strong>${c.name}</strong></div>
+      <div class="list-actions"><button class="btn-danger" onclick="deleteCategory('${id}')">حذف</button></div>
+    </div>`).join("");
+}
+
+// ---------- SIZE ROWS ----------
+function addSizeRow(label, price){
+  sizeRowCount++;
+  const id = "size_"+sizeRowCount;
+  const wrap = document.getElementById("sizeRows");
+  const row = document.createElement("div");
+  row.className = "row";
+  row.id = id;
+  row.innerHTML = `
+    <input placeholder="اسم الحجم (مثلاً: صغير)" class="size-label" value="${label}">
+    <input placeholder="السعر" class="size-price" value="${price}">
+    <button class="btn-danger" type="button" onclick="document.getElementById('${id}').remove()">حذف</button>`;
+  wrap.appendChild(row);
+}
+
+// ---------- ITEMS ----------
+function resetItemForm(){
+  document.getElementById("formTitle").textContent = "إضافة صنف جديد";
+  document.getElementById("itemId").value = "";
+  document.getElementById("itemName").value = "";
+  document.getElementById("itemImageUrl").value = "";
+  document.getElementById("itemFlavors").value = "";
+  document.getElementById("offerActive").checked = false;
+  document.getElementById("offerPrice").value = "";
+  document.getElementById("sizeRows").innerHTML = "";
+  addSizeRow("عادي", "");
+}
+
+function editItem(id){
+  const it = items[id];
+  document.getElementById("formTitle").textContent = "تعديل الصنف";
+  document.getElementById("itemId").value = id;
+  document.getElementById("itemName").value = it.name || "";
+  document.getElementById("itemImageUrl").value = it.image || "";
+  document.getElementById("itemCategory").value = it.categoryId || "";
+  document.getElementById("itemFlavors").value = (it.flavors||[]).join("، ");
+  document.getElementById("offerActive").checked = !!(it.offer && it.offer.active);
+  document.getElementById("offerPrice").value = it.offer ? (it.offer.discountPrice||"") : "";
+  document.getElementById("sizeRows").innerHTML = "";
+  const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"عادي", price: it.price||""}];
+  sizes.forEach(s=>addSizeRow(s.label, s.price));
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function deleteItem(id){
+  if(!confirm("حذف هذا الصنف نهائياً؟")) return;
+  db.ref("items/"+id).remove();
+}
+
+async function saveItem(){
+  const id = document.getElementById("itemId").value;
+  const name = document.getElementById("itemName").value.trim();
+  const categoryId = document.getElementById("itemCategory").value;
+  if(!name){ alert("اكتب اسم الصنف"); return; }
+  if(!categoryId){ alert("سوي تصنيف واحد على الأقل واختاره"); return; }
+
+  const sizes = Array.from(document.querySelectorAll("#sizeRows .row")).map(row=>({
+    label: row.querySelector(".size-label").value.trim(),
+    price: Number(row.querySelector(".size-price").value) || 0
+  })).filter(s=>s.price > 0 || s.label);
+
+  const flavors = document.getElementById("itemFlavors").value
+    .split(/[,،]/).map(f=>f.trim()).filter(Boolean);
+
+  const imageUrl = document.getElementById("itemImageUrl").value.trim();
+
+  const offerActive = document.getElementById("offerActive").checked;
+  const offerPrice = Number(document.getElementById("offerPrice").value) || 0;
+
+  const data = {
+    name, categoryId, sizes, flavors,
+    image: imageUrl || null,
+    offer: offerActive ? {active:true, discountPrice: offerPrice} : {active:false},
+    order: id && items[id] ? items[id].order : Object.keys(items).length
+  };
+
+  if(id){
+    db.ref("items/"+id).update(data);
+  } else {
+    db.ref("items").push(data);
+  }
+  resetItemForm();
+}
+
+function renderItemsList(){
+  const el = document.getElementById("itemsList");
+  const entries = Object.entries(items);
+  if(!entries.length){ el.innerHTML = `<div class="hint">ما كو أصناف بعد</div>`; return; }
+  el.innerHTML = entries.map(([id,it])=>{
+    const catName = categories[it.categoryId] ? categories[it.categoryId].name : "—";
+    const price = it.sizes && it.sizes[0] ? it.sizes[0].price : (it.price||"");
+    const thumb = it.image ? `<img class="item-thumb" src="${it.image}">` : `<div class="item-thumb"></div>`;
+    return `
+      <div class="list-row">
+        ${thumb}
+        <div class="info">
+          <strong>${it.name}</strong>
+          <span>${catName} · ${price} د.ع${it.offer && it.offer.active ? " · فيه عرض" : ""}</span>
+        </div>
+        <div class="list-actions">
+          <button class="btn-sm" onclick="editItem('${id}')">تعديل</button>
+          <button class="btn-danger" onclick="deleteItem('${id}')">حذف</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// ---------- SETTINGS ----------
+function saveSettings(){
+  const data = {
+    shopName: document.getElementById("setShopName").value.trim(),
+    tagline: document.getElementById("setTagline").value.trim(),
+    logoUrl: document.getElementById("setLogoUrl").value.trim(),
+    primaryColor: document.getElementById("setPrimaryColor").value,
+    secondaryColor: document.getElementById("setSecondaryColor").value
+  };
+  db.ref("settings").update(data);
+  alert("تم الحفظ");
+}
+
+// ---------- QR ----------
+function renderQr(){
+  const link = window.location.origin + window.location.pathname.replace("admin.html","index.html");
+  document.getElementById("menuLink").textContent = link;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(link)}`;
+  document.getElementById("qrImg").src = qrUrl;
+  document.getElementById("qrDownload").href = qrUrl;
+}
+</script>
+</body>
+</html>

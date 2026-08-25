@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>المنيو</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#241B15;
+    --bg-card:#2F241C;
+    --bg-card-2:#382B21;
+    --accent:#E8A93D;
+    --accent-2:#C6624B;
+    --text:#F5EDE2;
+    --text-muted:#C9BBAA;
+    --line: rgba(245,237,226,0.12);
+    --radius: 18px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  .hero{
+    text-align:center;
+    padding:38px 20px 26px;
+    background:
+      radial-gradient(120% 100% at 50% 0%, rgba(232,169,61,0.16) 0%, rgba(36,27,21,0) 60%);
+  }
+  .hero img{
+    width:78px; height:78px; border-radius:50%;
+    object-fit:cover; margin-bottom:12px;
+    border:2px solid var(--accent);
+  }
+  .hero h1{
+    font-family:'Cairo', sans-serif;
+    font-weight:800;
+    font-size:28px;
+    letter-spacing:0.5px;
+  }
+  .hero p{
+    color:var(--text-muted);
+    font-size:14px;
+    margin-top:6px;
+  }
+  .tabs{
+    position:sticky; top:0; z-index:10;
+    display:flex; gap:8px; overflow-x:auto;
+    padding:14px 16px;
+    background:linear-gradient(180deg, var(--bg) 70%, rgba(36,27,21,0));
+    backdrop-filter: blur(6px);
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto;
+    padding:9px 18px;
+    border-radius:999px;
+    background:var(--bg-card);
+    color:var(--text-muted);
+    font-family:'Cairo', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    border:1px solid var(--line);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .tab.active{
+    background:var(--accent);
+    color:#241B15;
+    border-color:var(--accent);
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:16px;
+    padding:6px 16px 20px;
+    max-width:640px;
+    margin:0 auto;
+  }
+  @media(min-width:560px){
+    .grid{grid-template-columns:1fr 1fr;}
+  }
+  .card{
+    background:var(--bg-card);
+    border-radius:var(--radius);
+    overflow:hidden;
+    border:1px solid var(--line);
+    position:relative;
+  }
+  .card .img-wrap{
+    width:100%; aspect-ratio:4/3;
+    background:var(--bg-card-2);
+    overflow:hidden;
+    position:relative;
+  }
+  .card img.item-img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .no-img{
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-muted); font-size:13px;
+  }
+  .offer-badge{
+    position:absolute; top:10px; left:10px;
+    background:var(--accent-2);
+    color:#fff;
+    font-family:'Cairo', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    padding:4px 10px;
+    border-radius:999px;
+  }
+  .card-body{ padding:14px 14px 16px; }
+  .card-body h3{
+    font-family:'Cairo', sans-serif;
+    font-weight:700;
+    font-size:17px;
+    margin-bottom:4px;
+  }
+  .flavors{
+    display:flex; flex-wrap:wrap; gap:6px;
+    margin:8px 0 10px;
+  }
+  .flavor-chip{
+    font-size:12px;
+    color:var(--text-muted);
+    border:1px solid var(--line);
+    padding:3px 9px;
+    border-radius:999px;
+  }
+  .sizes{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-bottom:10px;
+  }
+  .size-btn{
+    font-family:'Tajawal', sans-serif;
+    font-size:13px;
+    padding:6px 12px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--text-muted);
+    cursor:pointer;
+  }
+  .size-btn.active{
+    border-color:var(--accent);
+    color:var(--accent);
+    background:rgba(232,169,61,0.08);
+  }
+  .price-row{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+    position:relative;
+  }
+  .price-row::before, .price-row::after{
+    content:"";
+    position:absolute; top:-6px;
+    width:12px; height:12px;
+    border-radius:50%;
+    background:var(--bg);
+  }
+  .price-row::before{ right:-14px; }
+  .price-row::after{ left:-14px; }
+  .price-tag{
+    font-family:'Cairo', sans-serif;
+    font-weight:800;
+    font-size:19px;
+    color:var(--accent);
+  }
+  .old-price{
+    font-size:13px;
+    color:var(--text-muted);
+    text-decoration:line-through;
+    margin-left:8px;
+  }
+  .empty{
+    text-align:center;
+    color:var(--text-muted);
+    padding:60px 20px;
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <img id="logoImg" src="" alt="" style="display:none;">
+  <h1 id="shopName">المنيو</h1>
+  <p id="shopTagline"></p>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="grid" id="grid"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+let categories = {};
+let items = {};
+let activeCat = "all";
+
+db.ref("settings").on("value", snap=>{
+  const s = snap.val() || {};
+  document.getElementById("shopName").textContent = s.shopName || "المنيو";
+  document.getElementById("shopTagline").textContent = s.tagline || "";
+  if(s.primaryColor) document.documentElement.style.setProperty('--accent', s.primaryColor);
+  if(s.secondaryColor) document.documentElement.style.setProperty('--accent-2', s.secondaryColor);
+  const logo = document.getElementById("logoImg");
+  if(s.logoUrl){ logo.src = s.logoUrl; logo.style.display="inline-block"; }
+});
+
+db.ref("categories").on("value", snap=>{
+  categories = snap.val() || {};
+  renderTabs();
+  renderGrid();
+});
+
+db.ref("items").on("value", snap=>{
+  items = snap.val() || {};
+  renderGrid();
+});
+
+function renderTabs(){
+  const tabs = document.getElementById("tabs");
+  const catList = Object.entries(categories).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+  let html = `<div class="tab ${activeCat==='all'?'active':''}" onclick="setCat('all')">الكل</div>`;
+  catList.forEach(([id,c])=>{
+    html += `<div class="tab ${activeCat===id?'active':''}" onclick="setCat('${id}')">${c.name}</div>`;
+  });
+  tabs.innerHTML = html;
+}
+
+function setCat(id){
+  activeCat = id;
+  renderTabs();
+  renderGrid();
+}
+
+function renderGrid(){
+  const grid = document.getElementById("grid");
+  let list = Object.entries(items || {});
+  if(activeCat !== "all"){
+    list = list.filter(([id,it])=> it.categoryId === activeCat);
+  }
+  list.sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+
+  if(list.length === 0){
+    grid.innerHTML = `<div class="empty">ما كو أصناف بعد بهذا التصنيف</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(([id,it])=>{
+    const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
+    const offer = it.offer && it.offer.active;
+    const imgHtml = it.image
+      ? `<img class="item-img" src="${it.image}" alt="${it.name}">`
+      : `<div class="no-img">لا توجد صورة</div>`;
+    const flavorsHtml = (it.flavors && it.flavors.length)
+      ? `<div class="flavors">${it.flavors.map(f=>`<span class="flavor-chip">${f}</span>`).join("")}</div>`
+      : "";
+    const sizeBtns = sizes.map((s,i)=>`<button class="size-btn ${i===0?'active':''}" data-item="${id}" data-idx="${i}" onclick="selectSize(this)">${s.label || 'عادي'}</button>`).join("");
+    return `
+      <div class="card">
+        <div class="img-wrap">
+          ${imgHtml}
+          ${offer ? `<div class="offer-badge">عرض</div>` : ""}
+        </div>
+        <div class="card-body">
+          <h3>${it.name}</h3>
+          ${flavorsHtml}
+          ${sizes.length>1 ? `<div class="sizes">${sizeBtns}</div>` : ""}
+          <div class="price-row">
+            <span></span>
+            <span id="price-${id}">
+              ${offer && it.offer.discountPrice ? `<span class="old-price">${sizes[0].price}</span>` : ""}
+              <span class="price-tag">${offer && it.offer.discountPrice ? it.offer.discountPrice : sizes[0].price} د.ع</span>
+            </span>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function selectSize(btn){
+  const itemId = btn.dataset.item;
+  const idx = parseInt(btn.dataset.idx);
+  const it = items[itemId];
+  const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
+  document.querySelectorAll(`.size-btn[data-item="${itemId}"]`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const priceEl = document.getElementById(`price-${itemId}`);
+  priceEl.innerHTML = `<span class="price-tag">${sizes[idx].price} د.ع</span>`;
+}
+</script>
+</body>
+</html>
