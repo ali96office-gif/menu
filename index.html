@@ -306,7 +306,12 @@ function selectSize(btn){
   document.querySelectorAll(`.size-btn[data-item="${itemId}"]`).forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const priceEl = document.getElementById(`price-${itemId}`);
-  priceEl.innerHTML = `<span class="price-tag">${sizes[idx].price} د.ع</span>`;
+  const offer = it.offer && it.offer.active;
+  if(idx === 0 && offer && it.offer.discountPrice){
+    priceEl.innerHTML = `<span class="old-price">${sizes[0].price}</span><span class="price-tag">${it.offer.discountPrice} د.ع</span>`;
+  } else {
+    priceEl.innerHTML = `<span class="price-tag">${sizes[idx].price} د.ع</span>`;
+  }
 }
 </script>
 </body>
