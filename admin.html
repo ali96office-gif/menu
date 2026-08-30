@@ -176,6 +176,17 @@
       <input type="color" id="setBgColor" class="swatch" value="#241B15">
       <button class="btn-main" onclick="saveSettings()" style="margin-top:10px;">حفظ الإعدادات</button>
     </div>
+
+    <div class="card-box">
+      <h3 style="margin-bottom:12px;">الطلب عبر واتساب</h3>
+      <label><input type="checkbox" id="setWhatsappEnabled" style="width:auto; margin-left:6px;"> تفعيل السلة والطلب عبر واتساب</label>
+      <div class="hint" style="margin-top:8px;">إذا فعّلته، يطلع للزبون زر "أضف للسلة" بكل صنف، وسلة تجمع طلبه وترسله لك جاهز عبر واتساب</div>
+      <label>رقم الواتساب (مع رمز الدولة، بدون + أو أصفار بالبداية)</label>
+      <input id="setWhatsappNumber" placeholder="مثال: 9647701234567">
+      <label>سعر التوصيل (اختياري، اتركه 0 إذا ما فيه توصيل ثابت)</label>
+      <input id="setDeliveryFee" placeholder="0">
+      <button class="btn-main" onclick="saveSettings()" style="margin-top:10px;">حفظ الإعدادات</button>
+    </div>
   </div>
 
   <!-- QR -->
@@ -249,6 +260,9 @@ function initApp(){
     if(s.primaryColor) document.getElementById("setPrimaryColor").value = s.primaryColor;
     if(s.secondaryColor) document.getElementById("setSecondaryColor").value = s.secondaryColor;
     if(s.bgColor) document.getElementById("setBgColor").value = s.bgColor;
+    document.getElementById("setWhatsappEnabled").checked = !!s.whatsappEnabled;
+    document.getElementById("setWhatsappNumber").value = s.whatsappNumber || "";
+    document.getElementById("setDeliveryFee").value = (s.deliveryFee != null ? s.deliveryFee : "");
   });
   resetItemForm();
 }
@@ -397,7 +411,10 @@ function saveSettings(){
     logoUrl: document.getElementById("setLogoUrl").value.trim(),
     primaryColor: document.getElementById("setPrimaryColor").value,
     secondaryColor: document.getElementById("setSecondaryColor").value,
-    bgColor: document.getElementById("setBgColor").value
+    bgColor: document.getElementById("setBgColor").value,
+    whatsappEnabled: document.getElementById("setWhatsappEnabled").checked,
+    whatsappNumber: document.getElementById("setWhatsappNumber").value.trim(),
+    deliveryFee: Number(document.getElementById("setDeliveryFee").value) || 0
   };
   db.ref("settings").update(data);
   alert("تم الحفظ");
