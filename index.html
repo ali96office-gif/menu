@@ -108,6 +108,7 @@
   }
   .card img.item-img{
     width:100%; height:100%; object-fit:cover; display:block;
+    cursor:pointer;
   }
   .no-img{
     width:100%; height:100%;
@@ -223,6 +224,7 @@
     gap:12px;
     padding:12px 2px;
     border-bottom:1px dotted var(--line);
+    cursor:pointer;
   }
   .row-thumb{
     width:56px; height:56px;
@@ -230,6 +232,7 @@
     object-fit:cover;
     flex:0 0 56px;
     background:var(--bg-card-2);
+    cursor:pointer;
   }
   .row-thumb-empty{
     width:56px; height:56px;
@@ -281,6 +284,30 @@
     text-decoration:line-through;
     margin-left:4px;
   }
+  .lightbox-overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.9);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:1000; padding:24px;
+  }
+  .lightbox-overlay.active{ display:flex; }
+  .lightbox-overlay img{
+    max-width:100%; max-height:100%;
+    border-radius:12px;
+  }
+  .back-bar{
+    max-width:640px; margin:0 auto; padding:2px 16px 12px;
+  }
+  .back-btn{
+    background:var(--bg-card); color:var(--text);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:8px 18px;
+    font-family:'Cairo', sans-serif;
+    font-weight:700; font-size:13px;
+    cursor:pointer;
+  }
 </style>
 </head>
 <body>
@@ -294,6 +321,10 @@
 <div class="tabs" id="tabs"></div>
 <div class="grid" id="grid"></div>
 
+<div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="">
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
@@ -301,6 +332,28 @@
 let categories = {};
 let items = {};
 let activeCat = "all";
+let viewingItem = null;
+
+function openLightbox(url, ev){
+  if(ev) ev.stopPropagation();
+  if(!url) return;
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightboxOverlay').classList.add('active');
+}
+function closeLightbox(){
+  document.getElementById('lightboxOverlay').classList.remove('active');
+}
+
+function showItemDetail(id, ev){
+  if(ev) ev.stopPropagation();
+  viewingItem = id;
+  renderGrid();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function closeItemDetail(){
+  viewingItem = null;
+  renderGrid();
+}
 
 db.ref("settings").on("value", snap=>{
   const s = snap.val() || {};
@@ -308,6 +361,7 @@ db.ref("settings").on("value", snap=>{
   document.getElementById("shopTagline").textContent = s.tagline || "";
   if(s.primaryColor) document.documentElement.style.setProperty('--accent', s.primaryColor);
   if(s.secondaryColor) document.documentElement.style.setProperty('--accent-2', s.secondaryColor);
+  if(s.bgColor) document.documentElement.style.setProperty('--bg', s.bgColor);
   const logo = document.getElementById("logoImg");
   if(s.logoUrl){ logo.src = s.logoUrl; logo.style.display="inline-block"; }
 });
@@ -342,6 +396,15 @@ function setCat(id){
 function renderGrid(){
   const grid = document.getElementById("grid");
 
+  if(viewingItem){
+    const it = items[viewingItem];
+    if(it){
+      grid.innerHTML = `<div class="back-bar"><button class="back-btn" onclick="closeItemDetail()">→ رجوع</button></div>` + cardHtml(viewingItem, it);
+      return;
+    }
+    viewingItem = null;
+  }
+
   if(activeCat === "all"){
     renderAllGrouped();
     return;
@@ -355,33 +418,35 @@ function renderGrid(){
     return;
   }
 
-  grid.innerHTML = list.map(([id,it])=>{
-    const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
-    const imgHtml = it.image
-      ? `<img class="item-img" src="${it.image}" alt="${it.name}">`
-      : `<div class="no-img">لا توجد صورة</div>`;
-    const flavorsHtml = (it.flavors && it.flavors.length)
-      ? `<div class="flavors">${it.flavors.map(f=>`<span class="flavor-chip">${f}</span>`).join("")}</div>`
-      : "";
-    const showSizes = sizes.length > 1 || sizes[0].label;
-    const sizeBtns = sizes.map((s,i)=>`<button class="size-btn ${i===0?'active':''}" data-item="${id}" data-idx="${i}" onclick="selectSize(this)">${s.label || 'عادي'}</button>`).join("");
-    const offerActive = !!(it.offer && it.offer.active && it.offer.discountPrice);
-    return `
-      <div class="card">
-        <div class="img-wrap">
-          ${imgHtml}
-          ${offerActive ? `<div class="offer-badge">عرض</div>` : ""}
+  grid.innerHTML = list.map(([id,it])=> cardHtml(id, it)).join("");
+}
+
+function cardHtml(id, it){
+  const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
+  const imgHtml = it.image
+    ? `<img class="item-img" src="${it.image}" alt="${it.name}" onclick="openLightbox('${it.image}', event)">`
+    : `<div class="no-img">لا توجد صورة</div>`;
+  const flavorsHtml = (it.flavors && it.flavors.length)
+    ? `<div class="flavors">${it.flavors.map(f=>`<span class="flavor-chip">${f}</span>`).join("")}</div>`
+    : "";
+  const showSizes = sizes.length > 1 || sizes[0].label;
+  const sizeBtns = sizes.map((s,i)=>`<button class="size-btn ${i===0?'active':''}" data-item="${id}" data-idx="${i}" onclick="selectSize(this)">${s.label || 'عادي'}</button>`).join("");
+  const offerActive = !!(it.offer && it.offer.active && it.offer.discountPrice);
+  return `
+    <div class="card">
+      <div class="img-wrap">
+        ${imgHtml}
+        ${offerActive ? `<div class="offer-badge">عرض</div>` : ""}
+      </div>
+      <div class="card-body">
+        <h3>${it.name}</h3>
+        ${flavorsHtml}
+        ${showSizes ? `<div class="sizes">${sizeBtns}</div>` : ""}
+        <div class="price-row">
+          <span id="price-${id}">${priceValueHtml(it, 0)}</span>
         </div>
-        <div class="card-body">
-          <h3>${it.name}</h3>
-          ${flavorsHtml}
-          ${showSizes ? `<div class="sizes">${sizeBtns}</div>` : ""}
-          <div class="price-row">
-            <span id="price-${id}">${priceValueHtml(it, 0)}</span>
-          </div>
-        </div>
-      </div>`;
-  }).join("");
+      </div>
+    </div>`;
 }
 
 function priceValueHtml(it, idx){
@@ -423,7 +488,7 @@ function renderAllGrouped(){
       const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
       const offerActive = !!(it.offer && it.offer.active && it.offer.discountPrice);
       const imgHtml = it.image
-        ? `<img class="row-thumb" src="${it.image}" alt="${it.name}" width="56" height="56">`
+        ? `<img class="row-thumb" src="${it.image}" alt="${it.name}" width="56" height="56" onclick="openLightbox('${it.image}', event)">`
         : `<div class="row-thumb-empty"></div>`;
       const flavorHtml = (it.flavors && it.flavors.length)
         ? `<span class="row-flavor">(${it.flavors.join('، ')})</span>`
@@ -436,7 +501,7 @@ function renderAllGrouped(){
         return `<span class="row-size-item">${label}<span class="row-price">${s.price}</span> د.ع</span>`;
       }).join("");
       return `
-        <div class="menu-row">
+        <div class="menu-row" onclick="showItemDetail('${id}')">
           ${imgHtml}
           <div class="row-info">
             <div class="row-name-line">

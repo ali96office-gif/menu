@@ -172,6 +172,8 @@
       <input type="color" id="setPrimaryColor" class="swatch" value="#E8A93D">
       <label>اللون الثانوي (للعروض)</label>
       <input type="color" id="setSecondaryColor" class="swatch" value="#C6624B">
+      <label>لون خلفية المنيو</label>
+      <input type="color" id="setBgColor" class="swatch" value="#241B15">
       <button class="btn-main" onclick="saveSettings()" style="margin-top:10px;">حفظ الإعدادات</button>
     </div>
   </div>
@@ -246,6 +248,7 @@ function initApp(){
     document.getElementById("setLogoUrl").value = s.logoUrl || "";
     if(s.primaryColor) document.getElementById("setPrimaryColor").value = s.primaryColor;
     if(s.secondaryColor) document.getElementById("setSecondaryColor").value = s.secondaryColor;
+    if(s.bgColor) document.getElementById("setBgColor").value = s.bgColor;
   });
   resetItemForm();
 }
@@ -393,7 +396,8 @@ function saveSettings(){
     tagline: document.getElementById("setTagline").value.trim(),
     logoUrl: document.getElementById("setLogoUrl").value.trim(),
     primaryColor: document.getElementById("setPrimaryColor").value,
-    secondaryColor: document.getElementById("setSecondaryColor").value
+    secondaryColor: document.getElementById("setSecondaryColor").value,
+    bgColor: document.getElementById("setBgColor").value
   };
   db.ref("settings").update(data);
   alert("تم الحفظ");
