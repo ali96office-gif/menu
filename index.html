@@ -421,7 +421,7 @@ function renderAllGrouped(){
       const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
       const offerActive = !!(it.offer && it.offer.active && it.offer.discountPrice);
       const imgHtml = it.image
-        ? `<img class="row-thumb" src="${it.image}" alt="${it.name}">`
+        ? `<img class="row-thumb" src="${it.image}" alt="${it.name}" width="56" height="56">`
         : `<div class="row-thumb-empty"></div>`;
       const flavorHtml = (it.flavors && it.flavors.length)
         ? `<span class="row-flavor">(${it.flavors.join('، ')})</span>`
