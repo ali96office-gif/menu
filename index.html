@@ -218,7 +218,7 @@
   }
   .menu-row{
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     gap:12px;
     padding:12px 2px;
     border-bottom:1px dotted var(--line);
@@ -245,6 +245,12 @@
     font-family:'Tajawal', sans-serif;
     font-weight:500;
     font-size:15px;
+  }
+  .row-flavor{
+    font-family:'Tajawal', sans-serif;
+    font-weight:400;
+    font-size:12px;
+    color:var(--text-muted);
   }
   .row-offer-badge{
     background:var(--accent-2);
@@ -417,6 +423,9 @@ function renderAllGrouped(){
       const imgHtml = it.image
         ? `<img class="row-thumb" src="${it.image}" alt="${it.name}">`
         : `<div class="row-thumb-empty"></div>`;
+      const flavorHtml = (it.flavors && it.flavors.length)
+        ? `<span class="row-flavor">(${it.flavors.join('، ')})</span>`
+        : "";
       const sizesHtml = sizes.map((s,i)=>{
         const label = s.label ? s.label + ': ' : '';
         if(i === 0 && offerActive){
@@ -430,6 +439,7 @@ function renderAllGrouped(){
           <div class="row-info">
             <div class="row-name-line">
               <span class="row-name">${it.name}</span>
+              ${flavorHtml}
               ${offerActive ? `<span class="row-offer-badge">عرض</span>` : ""}
             </div>
             <div class="row-sizes">${sizesHtml}</div>
