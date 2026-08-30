@@ -162,7 +162,7 @@
     background:rgba(232,169,61,0.08);
   }
   .price-row{
-    display:flex; align-items:center; justify-content:space-between;
+    display:flex; align-items:center; justify-content:flex-end;
     margin-top:10px;
     padding-top:10px;
     border-top:1px dashed var(--line);
@@ -177,23 +177,79 @@
   }
   .price-row::before{ right:-14px; }
   .price-row::after{ left:-14px; }
+  .price-value{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
   .price-tag{
     font-family:'Cairo', sans-serif;
     font-weight:800;
     font-size:19px;
     color:var(--accent);
+    white-space:nowrap;
   }
   .old-price{
     font-size:13px;
     color:var(--text-muted);
     text-decoration:line-through;
-    margin-left:8px;
+    white-space:nowrap;
   }
   .empty{
     text-align:center;
     color:var(--text-muted);
     padding:60px 20px;
     font-size:14px;
+  }
+  .cat-section{
+    max-width:640px;
+    margin:0 auto 26px;
+    padding:0 6px;
+  }
+  .cat-title{
+    font-family:'Cairo', sans-serif;
+    font-weight:800;
+    font-size:19px;
+    color:var(--accent);
+    margin-bottom:10px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--accent);
+    display:inline-block;
+  }
+  .menu-row{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    padding:9px 2px;
+    border-bottom:1px dotted var(--line);
+  }
+  .row-name{
+    font-family:'Tajawal', sans-serif;
+    font-weight:500;
+    font-size:15px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .row-dots{
+    flex:1;
+    border-bottom:2px dotted var(--text-muted);
+    opacity:0.5;
+    height:0;
+    transform:translateY(-4px);
+  }
+  .row-price{
+    font-family:'Cairo', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--accent);
+    white-space:nowrap;
+  }
+  .row-old-price{
+    font-size:12px;
+    color:var(--text-muted);
+    text-decoration:line-through;
+    margin-right:4px;
   }
 </style>
 </head>
@@ -255,10 +311,13 @@ function setCat(id){
 
 function renderGrid(){
   const grid = document.getElementById("grid");
-  let list = Object.entries(items || {});
-  if(activeCat !== "all"){
-    list = list.filter(([id,it])=> it.categoryId === activeCat);
+
+  if(activeCat === "all"){
+    renderAllGrouped();
+    return;
   }
+
+  let list = Object.entries(items || {}).filter(([id,it])=> it.categoryId === activeCat);
   list.sort((a,b)=>(a[1].order||0)-(b[1].order||0));
 
   if(list.length === 0){
@@ -268,50 +327,87 @@ function renderGrid(){
 
   grid.innerHTML = list.map(([id,it])=>{
     const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
-    const offer = it.offer && it.offer.active;
     const imgHtml = it.image
       ? `<img class="item-img" src="${it.image}" alt="${it.name}">`
       : `<div class="no-img">لا توجد صورة</div>`;
     const flavorsHtml = (it.flavors && it.flavors.length)
       ? `<div class="flavors">${it.flavors.map(f=>`<span class="flavor-chip">${f}</span>`).join("")}</div>`
       : "";
+    const showSizes = sizes.length > 1 || sizes[0].label;
     const sizeBtns = sizes.map((s,i)=>`<button class="size-btn ${i===0?'active':''}" data-item="${id}" data-idx="${i}" onclick="selectSize(this)">${s.label || 'عادي'}</button>`).join("");
+    const offerActive = !!(it.offer && it.offer.active && it.offer.discountPrice);
     return `
       <div class="card">
         <div class="img-wrap">
           ${imgHtml}
-          ${offer ? `<div class="offer-badge">عرض</div>` : ""}
+          ${offerActive ? `<div class="offer-badge">عرض</div>` : ""}
         </div>
         <div class="card-body">
           <h3>${it.name}</h3>
           ${flavorsHtml}
-          ${sizes.length>1 ? `<div class="sizes">${sizeBtns}</div>` : ""}
+          ${showSizes ? `<div class="sizes">${sizeBtns}</div>` : ""}
           <div class="price-row">
-            <span></span>
-            <span id="price-${id}">
-              ${offer && it.offer.discountPrice ? `<span class="old-price">${sizes[0].price}</span>` : ""}
-              <span class="price-tag">${offer && it.offer.discountPrice ? it.offer.discountPrice : sizes[0].price} د.ع</span>
-            </span>
+            <span id="price-${id}">${priceValueHtml(it, 0)}</span>
           </div>
         </div>
       </div>`;
   }).join("");
 }
 
+function priceValueHtml(it, idx){
+  const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
+  const offerActive = !!(it.offer && it.offer.active && it.offer.discountPrice);
+  if(idx === 0 && offerActive){
+    return `<span class="price-value"><span class="price-tag">${it.offer.discountPrice} د.ع</span><span class="old-price">${sizes[0].price}</span></span>`;
+  }
+  return `<span class="price-value"><span class="price-tag">${sizes[idx].price} د.ع</span></span>`;
+}
+
 function selectSize(btn){
   const itemId = btn.dataset.item;
   const idx = parseInt(btn.dataset.idx);
   const it = items[itemId];
-  const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
   document.querySelectorAll(`.size-btn[data-item="${itemId}"]`).forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const priceEl = document.getElementById(`price-${itemId}`);
-  const offer = it.offer && it.offer.active;
-  if(idx === 0 && offer && it.offer.discountPrice){
-    priceEl.innerHTML = `<span class="old-price">${sizes[0].price}</span><span class="price-tag">${it.offer.discountPrice} د.ع</span>`;
-  } else {
-    priceEl.innerHTML = `<span class="price-tag">${sizes[idx].price} د.ع</span>`;
+  priceEl.innerHTML = priceValueHtml(it, idx);
+}
+
+function renderAllGrouped(){
+  const grid = document.getElementById("grid");
+  const catList = Object.entries(categories).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+
+  if(catList.length === 0){
+    grid.innerHTML = `<div class="empty">ما كو أصناف بعد</div>`;
+    return;
   }
+
+  let html = "";
+  catList.forEach(([catId, cat])=>{
+    const catItems = Object.entries(items || {})
+      .filter(([id,it])=> it.categoryId === catId)
+      .sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+    if(catItems.length === 0) return;
+
+    const rows = catItems.map(([id,it])=>{
+      const sizes = it.sizes && it.sizes.length ? it.sizes : [{label:"", price: it.price || 0}];
+      const offerActive = !!(it.offer && it.offer.active && it.offer.discountPrice);
+      const priceHtml = offerActive
+        ? `<span class="row-price">${it.offer.discountPrice} <span class="row-old-price">${sizes[0].price}</span></span>`
+        : `<span class="row-price">${sizes[0].price}</span>`;
+      const sizeNote = (sizes.length > 1 || sizes[0].label) ? ` (${sizes[0].label || 'عادي'})` : "";
+      return `
+        <div class="menu-row">
+          <span class="row-name">${it.name}${sizeNote}</span>
+          <span class="row-dots"></span>
+          ${priceHtml}
+        </div>`;
+    }).join("");
+
+    html += `<div class="cat-section"><span class="cat-title">${cat.name}</span>${rows}</div>`;
+  });
+
+  grid.innerHTML = html || `<div class="empty">ما كو أصناف بعد</div>`;
 }
 </script>
 </body>
