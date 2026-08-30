@@ -641,6 +641,11 @@ function sendWhatsAppOrder(){
   if(address) msg += `\nالعنوان: ${address}`;
 
   window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, '_blank');
+
+  cart = {};
+  saveCart();
+  renderCartModal();
+  closeCart();
 }
 
 db.ref("settings").on("value", snap=>{
